@@ -1,4 +1,9 @@
-import React, { Component, HTMLAttributes, KeyboardEvent } from 'react';
+import React, {
+  Component,
+  HTMLAttributes,
+  KeyboardEvent,
+  Fragment,
+} from 'react';
 import { EuiDataGridHeaderRow } from './data_grid_header_row';
 import { CommonProps, Omit } from '../common';
 import {
@@ -188,12 +193,14 @@ export class EuiDataGrid extends Component<EuiDataGridProps, EuiDataGridState> {
       ...rest
     } = this.props;
 
-    const fontSize = gridStyle.fontSize || 'm';
-    const border = gridStyle.border || 'all';
-    const header = gridStyle.header || 'shade';
-    const rowHover = gridStyle.rowHover || 'highlight';
-    const stripes = gridStyle.stripes ? true : false;
-    const cellPadding = gridStyle.cellPadding || 'm';
+    const {
+      fontSize = 'm',
+      border = 'all',
+      header = 'shade',
+      rowHover = 'highlight',
+      stripes = false,
+      cellPadding = 'm',
+    } = gridStyle;
 
     const classes = classNames(
       'euiDataGrid',
@@ -209,33 +216,34 @@ export class EuiDataGrid extends Component<EuiDataGridProps, EuiDataGridState> {
     );
 
     return (
-      // Unsure why this element causes errors as focus follows spec
-      // eslint-disable-next-line jsx-a11y/interactive-supports-focus
-      <div
-        role="grid"
-        onKeyDown={this.handleKeyDown}
-        // {...label}
-        {...rest}
-        className={classes}>
-        <div className="euiDataGrid__content">
-          <EuiDataGridHeaderRow
-            columns={columns}
-            columnWidths={columnWidths}
-            setColumnWidth={this.setColumnWidth}
-          />
-          <EuiDataGridBody
-            columnWidths={columnWidths}
-            columns={columns}
-            focusedCell={focusedCell}
-            onCellFocus={this.onCellFocus}
-            pagination={pagination}
-            renderCellValue={renderCellValue}
-            rowCount={rowCount}
-          />
+      /* eslint-disable jsx-a11y/interactive-supports-focus */
+      <Fragment>
+        <div
+          role="grid"
+          onKeyDown={this.handleKeyDown}
+          {...rest}
+          className={classes}>
+          <div className="euiDataGrid__content">
+            <EuiDataGridHeaderRow
+              columns={columns}
+              columnWidths={columnWidths}
+              setColumnWidth={this.setColumnWidth}
+            />
+            <EuiDataGridBody
+              columnWidths={columnWidths}
+              columns={columns}
+              focusedCell={focusedCell}
+              onCellFocus={this.onCellFocus}
+              pagination={pagination}
+              renderCellValue={renderCellValue}
+              rowCount={rowCount}
+            />
+          </div>
+          <EuiSpacer size="s" />
+          {this.renderPagination()}
         </div>
-        <EuiSpacer size="s" />
-        {this.renderPagination()}
-      </div>
+      </Fragment>
+      /* eslint-enable jsx-a11y/interactive-supports-focus */
     );
   }
 }

@@ -5,8 +5,12 @@ import React, {
   memo,
   ReactNode,
   createRef,
+  Fragment,
 } from 'react';
 import { Omit } from '../common';
+import tabbable from 'tabbable';
+import { EuiPortal } from '../portal';
+import { htmlIdGenerator } from '../..//services';
 
 interface CellValueElementProps {
   rowIndex: number;
@@ -25,7 +29,10 @@ export interface EuiDataGridCellProps {
     | ((props: CellValueElementProps) => ReactNode);
 }
 
-interface EuiDataGridCellState {}
+interface EuiDataGridCellState {
+  tabbables: HTMLElement[];
+  nodes: NodeListOf<ChildNode>;
+}
 
 type EuiDataGridCellValueProps = Omit<EuiDataGridCellProps, 'width'>;
 
@@ -47,32 +54,82 @@ export class EuiDataGridCell extends Component<
   EuiDataGridCellState
 > {
   cellRef = createRef<HTMLDivElement>();
+  state = {
+    tabbables: [] as HTMLElement[],
+    nodes: document.createDocumentFragment().childNodes,
+  };
+
+  idMaker = htmlIdGenerator();
+
+  setTabbablesTabIndex() {
+    this.state.tabbables.forEach(element => {
+      element.setAttribute('tabIndex', this.props.isFocusable ? '0' : '-1');
+    });
+  }
 
   updateFocus() {
     if (this.cellRef.current && this.props.isFocusable) {
-      this.cellRef.current.focus();
+      const { tabbables, nodes } = this.state;
+
+      if (tabbables.length === 1 && nodes.length === 1) {
+        tabbables[0].focus();
+      } else {
+        this.cellRef.current.focus();
+      }
     }
   }
 
-  componentDidUpdate() {
-    this.updateFocus();
+  componentDidMount() {
+    if (this.cellRef.current) {
+      // eslint-disable-next-line react/no-did-mount-set-state
+      this.setState(
+        {
+          tabbables: tabbable(this.cellRef.current),
+          nodes: this.cellRef.current.childNodes,
+        },
+        this.setTabbablesTabIndex
+      );
+    }
+  }
+
+  componentDidUpdate(prevProps: EuiDataGridCellProps) {
+    if (prevProps.isFocusable !== this.props.isFocusable) {
+      this.setTabbablesTabIndex();
+      this.updateFocus();
+    }
   }
 
   render() {
+    const { tabbables, nodes } = this.state;
     const { width, ...rest } = this.props;
     const { colIndex, rowIndex, onCellFocus, isFocusable } = rest;
 
+    const isInteractiveCell =
+      tabbables.length > 1 || (tabbables.length === 1 && nodes.length > 1);
+    const shouldCellRecieveFocus = isFocusable && !isInteractiveCell;
+    const interactiveCellId = isInteractiveCell ? this.idMaker() : undefined;
+
     return (
-      <div
-        role="gridcell"
-        tabIndex={isFocusable ? 0 : -1}
-        ref={this.cellRef}
-        className="euiDataGridRowCell"
-        data-test-subj="dataGridRowCell"
-        onFocus={() => onCellFocus(colIndex, rowIndex)}
-        style={{ width: `${width}px` }}>
-        <EuiDataGridCellContent {...rest} />
-      </div>
+      <Fragment>
+        <div
+          role="gridcell"
+          aria-describedby={interactiveCellId}
+          tabIndex={shouldCellRecieveFocus ? 0 : -1}
+          ref={this.cellRef}
+          className="euiDataGridRowCell"
+          data-test-subj="dataGridRowCell"
+          onFocus={() => onCellFocus(colIndex, rowIndex)}
+          style={{ width: `${width}px` }}>
+          <EuiDataGridCellContent {...rest} />
+        </div>
+        {isInteractiveCell && (
+          <EuiPortal>
+            <p id={interactiveCellId} hidden>
+              Cell contains interactive content.
+            </p>
+          </EuiPortal>
+        )}
+      </Fragment>
     );
   }
 }
