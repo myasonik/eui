@@ -29,6 +29,9 @@ const columns = [
   {
     name: 'actions',
   },
+  {
+    name: 'buggy column',
+  },
 ];
 
 const data = [
@@ -428,6 +431,14 @@ export default class DataGrid extends Component {
                 <Fragment>
                   Avatar: <EuiLink href={value}>{value}</EuiLink>
                 </Fragment>
+              );
+            }
+            if (columnName === 'buggy column') {
+              return (
+                <div>
+                  This is a bug:
+                  {this.dummyIcon()}
+                </div>
               );
             }
             return value;

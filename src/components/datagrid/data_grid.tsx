@@ -1,9 +1,4 @@
-import React, {
-  Component,
-  HTMLAttributes,
-  KeyboardEvent,
-  Fragment,
-} from 'react';
+import React, { Component, HTMLAttributes, KeyboardEvent } from 'react';
 import { EuiDataGridHeaderRow } from './data_grid_header_row';
 import { CommonProps, Omit } from '../common';
 import {
@@ -53,6 +48,8 @@ type EuiDataGridProps = Omit<CommonGridProps, 'aria-label'> &
 interface EuiDataGridState {
   columnWidths: EuiDataGridColumnWidths;
   focusedCell: [number, number];
+  isGridNavigationEnabled: EuiDataGridCellProps['isGridNavigationEnabled'];
+  canTurnOffNavigation: boolean;
 }
 
 // Each gridStyle object above sets a specific CSS select to .euiGrid
@@ -93,6 +90,8 @@ export class EuiDataGrid extends Component<EuiDataGridProps, EuiDataGridState> {
   state = {
     columnWidths: {},
     focusedCell: ORIGIN,
+    isGridNavigationEnabled: true,
+    canTurnOffNavigation: false,
   };
 
   computeVisibleRows = () => {
@@ -117,35 +116,55 @@ export class EuiDataGrid extends Component<EuiDataGridProps, EuiDataGridState> {
 
   handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const colCount = this.props.columns.length - 1;
-    const [x, y] = this.state.focusedCell;
     const rowCount = this.computeVisibleRows();
+    const {
+      isGridNavigationEnabled,
+      focusedCell,
+      canTurnOffNavigation,
+    } = this.state;
+    const [x, y] = focusedCell;
 
-    switch (e.keyCode) {
-      case keyCodes.DOWN:
-        e.preventDefault();
-        if (y < rowCount) {
-          this.setState({ focusedCell: [x, y + 1] });
-        }
-        break;
-      case keyCodes.LEFT:
-        e.preventDefault();
-        if (x > 0) {
-          this.setState({ focusedCell: [x - 1, y] });
-        }
-        break;
-      case keyCodes.UP:
-        e.preventDefault();
-        // TODO sort out when a user can arrow up into the column headers
-        if (y > 0) {
-          this.setState({ focusedCell: [x, y - 1] });
-        }
-        break;
-      case keyCodes.RIGHT:
-        e.preventDefault();
-        if (x < colCount) {
-          this.setState({ focusedCell: [x + 1, y] });
-        }
-        break;
+    if (canTurnOffNavigation) {
+      switch (e.keyCode) {
+        case keyCodes.ENTER:
+          e.preventDefault();
+          this.setState({ isGridNavigationEnabled: false });
+          break;
+        case keyCodes.ESCAPE:
+          e.preventDefault();
+          this.setState({ isGridNavigationEnabled: true });
+          break;
+      }
+    }
+
+    if (isGridNavigationEnabled) {
+      switch (e.keyCode) {
+        case keyCodes.DOWN:
+          e.preventDefault();
+          if (y < rowCount) {
+            this.setState({ focusedCell: [x, y + 1] });
+          }
+          break;
+        case keyCodes.LEFT:
+          e.preventDefault();
+          if (x > 0) {
+            this.setState({ focusedCell: [x - 1, y] });
+          }
+          break;
+        case keyCodes.UP:
+          e.preventDefault();
+          // TODO sort out when a user can arrow up into the column headers
+          if (y > 0) {
+            this.setState({ focusedCell: [x, y - 1] });
+          }
+          break;
+        case keyCodes.RIGHT:
+          e.preventDefault();
+          if (x < colCount) {
+            this.setState({ focusedCell: [x + 1, y] });
+          }
+          break;
+      }
     }
   };
 
@@ -181,8 +200,13 @@ export class EuiDataGrid extends Component<EuiDataGridProps, EuiDataGridState> {
     );
   }
 
+  isInteractiveCell = (canTurnOffNavigation: boolean) => {
+    console.log(canTurnOffNavigation);
+    this.setState({ canTurnOffNavigation });
+  };
+
   render() {
-    const { columnWidths, focusedCell } = this.state;
+    const { columnWidths, focusedCell, isGridNavigationEnabled } = this.state;
     const {
       columns,
       rowCount,
@@ -217,7 +241,8 @@ export class EuiDataGrid extends Component<EuiDataGridProps, EuiDataGridState> {
 
     return (
       /* eslint-disable jsx-a11y/interactive-supports-focus */
-      <Fragment>
+      <>
+        {isGridNavigationEnabled ? 'ON' : 'OFF'}
         <div
           role="grid"
           onKeyDown={this.handleKeyDown}
@@ -237,12 +262,14 @@ export class EuiDataGrid extends Component<EuiDataGridProps, EuiDataGridState> {
               pagination={pagination}
               renderCellValue={renderCellValue}
               rowCount={rowCount}
+              isGridNavigationEnabled={isGridNavigationEnabled}
+              isInteractiveCell={this.isInteractiveCell}
             />
           </div>
           <EuiSpacer size="s" />
           {this.renderPagination()}
         </div>
-      </Fragment>
+      </>
       /* eslint-enable jsx-a11y/interactive-supports-focus */
     );
   }

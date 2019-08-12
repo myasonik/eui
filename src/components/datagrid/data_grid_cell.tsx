@@ -5,12 +5,13 @@ import React, {
   memo,
   ReactNode,
   createRef,
-  Fragment,
 } from 'react';
 import { Omit } from '../common';
 import tabbable from 'tabbable';
 import { EuiPortal } from '../portal';
-import { htmlIdGenerator } from '../..//services';
+import { htmlIdGenerator } from '../../services';
+// @ts-ignore
+import { EuiFocusTrap } from '../focus_trap';
 
 interface CellValueElementProps {
   rowIndex: number;
@@ -24,6 +25,8 @@ export interface EuiDataGridCellProps {
   width: number;
   isFocusable: boolean;
   onCellFocus: Function;
+  isGridNavigationEnabled: boolean;
+  isInteractiveCell: Function;
   renderCellValue:
     | JSXElementConstructor<CellValueElementProps>
     | ((props: CellValueElementProps) => ReactNode);
@@ -32,9 +35,13 @@ export interface EuiDataGridCellProps {
 interface EuiDataGridCellState {
   tabbables: HTMLElement[];
   nodes: NodeListOf<ChildNode>;
+  isInteractiveCell: boolean;
 }
 
-type EuiDataGridCellValueProps = Omit<EuiDataGridCellProps, 'width'>;
+type EuiDataGridCellValueProps = Omit<
+  EuiDataGridCellProps,
+  'width' | 'isGridNavigationEnabled' | 'isFocusable'
+>;
 
 const EuiDataGridCellContent: FunctionComponent<
   EuiDataGridCellValueProps
@@ -57,60 +64,84 @@ export class EuiDataGridCell extends Component<
   state = {
     tabbables: [] as HTMLElement[],
     nodes: document.createDocumentFragment().childNodes,
+    isInteractiveCell: false,
   };
 
   idMaker = htmlIdGenerator();
 
   setTabbablesTabIndex() {
+    const { isFocusable, isGridNavigationEnabled } = this.props;
+    const areContentsFocusable = isFocusable && !isGridNavigationEnabled;
+
     this.state.tabbables.forEach(element => {
-      element.setAttribute('tabIndex', this.props.isFocusable ? '0' : '-1');
+      element.setAttribute('tabIndex', areContentsFocusable ? '0' : '-1');
     });
   }
 
   updateFocus() {
-    if (this.cellRef.current && this.props.isFocusable) {
+    const { isFocusable, isGridNavigationEnabled } = this.props;
+    if (this.cellRef.current && isFocusable) {
       const { tabbables, nodes } = this.state;
 
-      if (tabbables.length === 1 && nodes.length === 1) {
-        tabbables[0].focus();
+      if (isGridNavigationEnabled) {
+        if (tabbables.length === 1 && nodes.length === 1) {
+          tabbables[0].focus();
+        } else {
+          this.cellRef.current.focus();
+        }
       } else {
-        this.cellRef.current.focus();
+        tabbables[0].focus();
       }
     }
   }
 
   componentDidMount() {
-    if (this.cellRef.current) {
+    const { current: currentNode } = this.cellRef;
+
+    if (currentNode) {
       // eslint-disable-next-line react/no-did-mount-set-state
       this.setState(
         {
-          tabbables: tabbable(this.cellRef.current),
-          nodes: this.cellRef.current.childNodes,
+          tabbables: tabbable(currentNode),
+          // @ts-ignore // TODO is this too hacky? yes. use new ref.
+          nodes: currentNode.querySelector('[data-focus-lock-disabled]')
+            .childNodes,
         },
-        this.setTabbablesTabIndex
+        () => {
+          const { tabbables, nodes } = this.state;
+          const isInteractiveCell =
+            tabbables.length > 1 ||
+            (tabbables.length === 1 && nodes.length > 1);
+
+          this.setTabbablesTabIndex();
+          this.props.isInteractiveCell(isInteractiveCell);
+          this.setState({ isInteractiveCell });
+        }
       );
     }
   }
 
   componentDidUpdate(prevProps: EuiDataGridCellProps) {
-    if (prevProps.isFocusable !== this.props.isFocusable) {
+    const didFocusChange = prevProps.isFocusable !== this.props.isFocusable;
+    const didNavigationChange =
+      prevProps.isGridNavigationEnabled !== this.props.isGridNavigationEnabled;
+
+    if (didFocusChange || didNavigationChange) {
       this.setTabbablesTabIndex();
       this.updateFocus();
     }
   }
 
   render() {
-    const { tabbables, nodes } = this.state;
-    const { width, ...rest } = this.props;
-    const { colIndex, rowIndex, onCellFocus, isFocusable } = rest;
+    const { isInteractiveCell } = this.state;
+    const { width, isGridNavigationEnabled, isFocusable, ...rest } = this.props;
+    const { colIndex, rowIndex, onCellFocus } = rest;
 
-    const isInteractiveCell =
-      tabbables.length > 1 || (tabbables.length === 1 && nodes.length > 1);
     const shouldCellRecieveFocus = isFocusable && !isInteractiveCell;
     const interactiveCellId = isInteractiveCell ? this.idMaker() : undefined;
 
     return (
-      <Fragment>
+      <>
         <div
           role="gridcell"
           aria-describedby={interactiveCellId}
@@ -120,16 +151,23 @@ export class EuiDataGridCell extends Component<
           data-test-subj="dataGridRowCell"
           onFocus={() => onCellFocus(colIndex, rowIndex)}
           style={{ width: `${width}px` }}>
-          <EuiDataGridCellContent {...rest} />
+          <EuiFocusTrap disabled={isGridNavigationEnabled}>
+            <div ref={this.cellContentsRef}>
+              <EuiDataGridCellContent {...rest} />
+            </div>
+          </EuiFocusTrap>
         </div>
         {isInteractiveCell && (
+          // TODO:
+          // Q: This this worth doing this here to be co-located & not have to pass an ID around
+          // at the cost of rendering tons of these?
           <EuiPortal>
             <p id={interactiveCellId} hidden>
               Cell contains interactive content.
             </p>
           </EuiPortal>
         )}
-      </Fragment>
+      </>
     );
   }
 }
