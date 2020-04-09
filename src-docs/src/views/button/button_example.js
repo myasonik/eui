@@ -103,17 +103,28 @@ const buttonGroupHtml = renderToHtml(ButtonGroup);
 const buttonGroupSnippet = [
   `<EuiButtonGroup
   legend={legend}
-  options={this.toggleButtons}
-  idSelected={this.state.toggleIdSelected}
-  onChange={this.onChange}
+  options={[
+    {
+      id: optionId,
+      label: 'Option'
+    }
+  ]}
+  idSelected={idSelected}
+  onChange={(optionId) => {}}
 />`,
   `<EuiButtonGroup
-  legend={legend}
-  options={this.toggleButtonsIconsMulti}
-  idToSelectedMap={this.state.toggleIconIdToSelectedMap}
-  onChange={this.onChangeIconsMulti}
   type="multi"
   isIconOnly
+  legend={legend}
+  options={[
+    {
+      id: optionId,
+      label: 'Option',
+      iconType: 'iconString',
+    }
+  ]}
+  idToSelectedMap={idToSelectedMap}
+  onChange={(optionId) => {}}
 />`,
 ];
 
@@ -349,10 +360,8 @@ export const ButtonExample = {
       text: (
         <div>
           <p>
-            <strong>EuiButtonGroups</strong> are handled similarly to the way
-            checkbox and radio groups are handled but made to look like buttons.
-            They group multiple <strong>EuiButtonToggles</strong> and utilize
-            the <EuiCode language="js">type=&quot;single&quot;</EuiCode> or{' '}
+            <strong>EuiButtonGroups</strong> utilize the{' '}
+            <EuiCode language="js">type=&quot;single&quot;</EuiCode> or{' '}
             <EuiCode language="js">&quot;multi&quot;</EuiCode> prop to determine
             whether multiple or only single selections are allowed per group.
           </p>
@@ -370,8 +379,9 @@ export const ButtonExample = {
             title={
               <span>
                 In order for groups to be properly read as groups with a title,
-                add the <EuiCode>legend</EuiCode> prop. This is only for
-                accessibility, however, so it will be visibly hidden.
+                the <EuiCode>legend</EuiCode> prop is <strong>required</strong>.
+                This is only for accessibility, however, so it will be visibly
+                hidden.
               </span>
             }
           />

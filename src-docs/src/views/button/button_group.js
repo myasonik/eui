@@ -24,8 +24,7 @@ export default class extends Component {
       },
       {
         id: `${idPrefix}1`,
-        label:
-          'Option two is selected by default Option two is selected by default',
+        label: 'Option two is selected by default',
       },
       {
         id: `${idPrefix}2`,
@@ -55,8 +54,7 @@ export default class extends Component {
       },
       {
         id: `${idPrefix2}1`,
-        label:
-          'Option 2 is selected by default Option 2 is selected by default',
+        label: 'Option 2 is selected by default',
       },
       {
         id: `${idPrefix2}2`,
