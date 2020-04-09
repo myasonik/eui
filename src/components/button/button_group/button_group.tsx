@@ -125,6 +125,14 @@ export const EuiButtonGroup: FunctionComponent<Props> = ({
     className
   );
 
+  // Compressed style can't support `ghost` color because it's more like a form field than a button
+  const badColorCombo = buttonSize === 'compressed' && color === 'ghost';
+  if (badColorCombo) {
+    console.warn(
+      'EuiButtonGroup of compressed size does not support the ghost color. It will render as text instead.'
+    );
+  }
+
   const fieldsetClasses = classNames('euiButtonGroup__fieldset', {
     'euiButtonGroup__fieldset--fullWidth': isFullWidth,
   });
@@ -174,7 +182,7 @@ export const EuiButtonGroup: FunctionComponent<Props> = ({
               <EuiButton
                 className={buttonClasses}
                 id={id}
-                color={color}
+                color={badColorCombo ? 'text' : color}
                 fill={fill}
                 isDisabled={optionDisabled || isDisabled}
                 aria-pressed={isSelectedState}

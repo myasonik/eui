@@ -9,6 +9,7 @@
 }
 
 .euiButtonGroup {
+  @include euiSlightShadow;
   max-width: 100%;
   display: flex;
   border: 1px solid $euiButtonToggleBorderColor;
@@ -52,28 +53,6 @@
   }
 }
 
-@each $name, $color in $euiButtonTypes {
-  .euiButtonGroup--#{$name} {
-    @if ($name == 'ghost') {
-      // Ghost is unique and ALWAYS sits against a dark background.
-      color: $color;
-    } @else {
-      // Other colors need to check their contrast against the page background color.
-      color: makeHighContrastColor($color, $euiPageBackgroundColor);
-    }
-
-    $shadowColor: $euiShadowColor;
-    @if ($name == 'ghost') {
-      $shadowColor: $euiColorInk;
-    } @else if (lightness($euiTextColor) < 50) {
-      // Only if this is the light theme do we use the button variant color to colorize the shadow
-      $shadowColor: desaturate($color, 60%);
-    }
-
-    @include euiSlightShadow($shadowColor);
-  }
-}
-
 .euiButtonGroup--compressed {
   border-color: $euiFormBorderColor;
   border-radius: $euiFormControlCompressedBorderRadius;
@@ -86,8 +65,8 @@
     height: $euiFormControlCompressedHeight - 2px;
     min-width: 0;
 
-    &:focus,
     &:hover,
+    &:focus,
     &--selected {
       background-color: $euiFormInputGroupLabelBackground;
     }
