@@ -33,12 +33,9 @@
 
   &:not(.euiButton--disabled) {
     &:hover,
+    &:focus,
     &:active {
       @include euiSlightShadowHover;
-    }
-
-    &:hover,
-    &:focus {
       background-color: transparentize($euiColorPrimary, .9);
     }
   }
@@ -116,7 +113,7 @@
 }
 
 // Fix ghost/disabled look specifically
-.euiButton--disabled.euiButton--ghost {
+.euiButton.euiButton--disabled.euiButton--ghost {
   &,
   &:hover,
   &:focus {

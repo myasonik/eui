@@ -5,7 +5,6 @@ export {
   ButtonIconSide,
   EuiButton,
   EuiButtonProps,
-  colorToClassNameMap,
 } from './button';
 
 export {
@@ -20,7 +19,6 @@ export {
   EuiButtonIconColor,
   EuiButtonIconProps,
   EuiButtonIconPropsForButton,
-  HideOrLabel,
 } from './button_icon';
 
 export { EuiButtonToggle, EuiButtonToggleProps } from './button_toggle';
