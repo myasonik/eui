@@ -82,17 +82,18 @@ const buttonToggleSource = require('!!raw-loader!./button_toggle');
 const buttonToggleHtml = renderToHtml(ButtonToggle);
 const buttonToggleSnippet = [
   `<EuiButton
-  iconType={this.state.toggleOn ? onIcon : offIcon}
-  onClick={this.onToggleChange}
+  iconType={toggleOn ? onIcon : offIcon}
+  onClick={onToggleChange}
 >
-  {this.state.toggleOn ? onLabel : offLabel}
+  {toggleOn ? onLabel : offLabel}
 </EuiButton>
 `,
   `<EuiButton
-  aria-pressed={this.state.toggleOn}
-  onChange={this.onToggleChange}
+  aria-pressed={toggleOn}
+  fill={toggleOn}
+  onChange={onToggleChange}
 >
-  {buttonText}
+  <!-- Button text -->
 </EuiButton>`,
 ];
 
@@ -309,11 +310,25 @@ export const ButtonExample = {
               </span>
             }
           />
-          <EuiSpacer size="s" />
+          <EuiSpacer size="m" />
           <p>
-            Pass in <EuiCode>aria-pressed</EuiCode> if your button does not
-            change its label for each state.
+            You can create a toggle style button with any button type like the
+            standard <strong>EuiButton</strong>, <strong>EuiButtonEmpty</strong>{' '}
+            or <strong>EuiButtonIcon</strong>. Simpy use state management to
+            handle the visual differences for on and off. Though there are two
+            situations to consider.
           </p>
+          <ul>
+            <li>
+              If your button changes its <strong>content</strong>, the text,
+              then there is no additional accessibility concern.
+            </li>
+            <li>
+              If your button only changes the <strong>visual</strong>{' '}
+              appearance, you must add <EuiCode>aria-pressed</EuiCode> for the{' '}
+              {'"on"'} state.
+            </li>
+          </ul>
         </>
       ),
       demo: <ButtonToggle />,
