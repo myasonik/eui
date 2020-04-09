@@ -1,5 +1,5 @@
 export {
   EuiButtonGroup,
-  EuiButtonGroupOption,
+  EuiButtonGroupOptionProps,
   EuiButtonGroupProps,
 } from './button_group';

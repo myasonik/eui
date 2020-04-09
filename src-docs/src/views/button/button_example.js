@@ -97,6 +97,7 @@ const buttonToggleSnippet = [
 </EuiButton>`,
 ];
 
+import { EuiButtonGroupOption } from './props';
 import ButtonGroup from './button_group';
 const buttonGroupSource = require('!!raw-loader!./button_group');
 const buttonGroupHtml = renderToHtml(ButtonGroup);
@@ -389,7 +390,7 @@ export const ButtonExample = {
       ),
       demo: <ButtonGroup />,
       snippet: buttonGroupSnippet,
-      props: { EuiButtonGroup },
+      props: { EuiButtonGroup, EuiButtonGroupOption },
     },
     {
       title: 'Ghost',

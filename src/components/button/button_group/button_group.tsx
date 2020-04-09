@@ -3,12 +3,11 @@ import React, { FunctionComponent, HTMLAttributes, ReactNode } from 'react';
 import { EuiScreenReaderOnly } from '../../accessibility';
 import { CommonProps } from '../../common';
 import { IconType } from '../../icon';
-import { ToggleType } from '../../toggle';
 import {
   ButtonColor,
   ButtonIconSide,
   EuiButton,
-  colorToClassNameMap,
+  // colorToClassNameMap,
 } from '../button';
 import { EuiIcon } from '../../icon/icon';
 
@@ -18,32 +17,81 @@ export interface EuiButtonGroupIdToSelectedMap {
 
 export type GroupButtonSize = 's' | 'm' | 'compressed';
 
-export interface EuiButtonGroupOption extends CommonProps {
+export interface EuiButtonGroupOptionProps extends CommonProps {
+  /**
+   * Each option must have a unique `id` for maintaining selection
+   */
   id: string;
+  /**
+   * Each option must have a `label` even for icons which will be applied as the `aria-label`
+   */
   label: ReactNode;
+  /**
+   * *DEPRECATED:* Was necessary when toggles were inputs, but now they're buttons.
+   * Use `label` instead
+   */
   name?: string;
   isDisabled?: boolean;
-  value?: any;
+  /**
+   * The value of the radio input.
+   * Only necessary/used when `type="single"`
+   */
+  value?: string;
   iconSide?: ButtonIconSide;
+  /**
+   * Any `type` accepted by EuiIcon
+   */
   iconType?: IconType;
 }
 
 export interface EuiButtonGroupProps extends CommonProps {
-  options?: EuiButtonGroupOption[];
-  onChange: (id: string, value?: any) => void;
+  /**
+   * An array of #EuiButtonGroupOption
+   */
+  options?: EuiButtonGroupOptionProps[];
+  /**
+   * Returns the `id` of the clicked option and the `value`
+   * if it is of `type="single"`
+   */
+  onChange: (id: string, value?: string) => void;
   /**
    * Typical sizing is `s`. Medium `m` size should be reserved for major features.
    * `compressed` is meant to be used alongside and within compressed forms.
    */
   buttonSize?: GroupButtonSize;
   isDisabled?: boolean;
+  /**
+   * Expands the whole group to the full width of the container.
+   * Each button gets equal widths no matter the content
+   */
   isFullWidth?: boolean;
+  /**
+   * Hides the label to only show the `iconType` provided by the `option`
+   */
   isIconOnly?: boolean;
+  /**
+   * Styles the selected option to look selected (usually with `fill`)
+   */
   idSelected?: string;
+  /**
+   * A hidden group title. Required for accessibility
+   */
   legend: string;
   color?: ButtonColor;
+  /**
+   * The `name` attribute for radio inputs. Only necessary/used when `type="single"`
+   */
   name?: string;
-  type?: ToggleType;
+  /**
+   * Determines how the selection of the group should be handled.
+   * With `'single'` only one option can be selected at a time (similar to radio group).
+   * With `'multi'` multiple options selected (similar to checkbox group).
+   */
+  type?: 'single' | 'multi';
+  /**
+   * A map of `id`s as keys with the selected boolean values.
+   * Only necessary/used when `type="single"`
+   */
   idToSelectedMap?: EuiButtonGroupIdToSelectedMap;
 }
 
@@ -64,7 +112,6 @@ export const EuiButtonGroup: FunctionComponent<Props> = ({
   onChange,
   options = [],
   type = 'single',
-  'data-test-subj': dataTestSubj,
   ...rest
 }) => {
   const classes = classNames(
@@ -99,7 +146,7 @@ export const EuiButtonGroup: FunctionComponent<Props> = ({
             className,
             iconType,
             iconSide,
-            ...rest
+            ...optionRest
           } = option;
 
           let isSelectedState;
@@ -115,7 +162,6 @@ export const EuiButtonGroup: FunctionComponent<Props> = ({
           }
           const buttonClasses = classNames(
             'euiButtonGroup__button',
-            'euiButton--no-hover',
             {
               'euiButtonGroup__button--selected': isSelectedState,
               'euiButtonGroup__button--iconOnly': isIconOnly,
@@ -133,12 +179,11 @@ export const EuiButtonGroup: FunctionComponent<Props> = ({
                 isDisabled={optionDisabled || isDisabled}
                 aria-pressed={isSelectedState}
                 size={buttonSize === 'compressed' ? 's' : buttonSize}
-                onClick={() => onChange(id, value)}
-                data-test-subj={dataTestSubj}
+                onClick={() => onChange(id)}
                 key={index}
                 iconSide={iconSide}
                 iconType={iconType}
-                {...rest}>
+                {...optionRest}>
                 {isIconOnly ? (
                   <EuiScreenReaderOnly>
                     <span>{label}</span>
@@ -154,7 +199,7 @@ export const EuiButtonGroup: FunctionComponent<Props> = ({
             'euiButton',
             'euiButton--no-hover',
             'euiButtonGroup__toggle',
-            color ? colorToClassNameMap[color] : null,
+            // color ? colorToClassNameMap[color] : null,
             {
               'euiButton--disabled': isDisabled,
               'euiButtonGroup__toggle--iconOnly': isIconOnly,
@@ -171,18 +216,17 @@ export const EuiButtonGroup: FunctionComponent<Props> = ({
 
           const isActuallyDisabled = optionDisabled || isDisabled;
           return (
-            <div className={wrapperClasses} key={index} {...rest}>
+            <div className={wrapperClasses} key={index}>
               <input
                 id={id}
                 className="euiButtonGroup__input"
-                name={optionName || name}
+                name={name}
                 onChange={() => onChange(id, value)}
                 checked={isSelectedState}
-                data-test-subj={dataTestSubj}
                 disabled={isActuallyDisabled}
                 value={value}
                 type="radio"
-                {...rest}
+                {...optionRest}
               />
               <label
                 htmlFor={id}
