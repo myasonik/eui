@@ -169,7 +169,7 @@ export const EuiButtonGroup: FunctionComponent<Props> = ({
             className
           );
 
-          if (type === 'multi') {
+          if (type) {
             return (
               <EuiButton
                 className={buttonClasses}
@@ -179,7 +179,7 @@ export const EuiButtonGroup: FunctionComponent<Props> = ({
                 isDisabled={optionDisabled || isDisabled}
                 aria-pressed={isSelectedState}
                 size={buttonSize === 'compressed' ? 's' : buttonSize}
-                onClick={() => onChange(id)}
+                onClick={() => onChange(id, value)}
                 key={index}
                 iconSide={iconSide}
                 iconType={iconType}

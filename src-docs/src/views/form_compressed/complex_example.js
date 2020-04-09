@@ -22,11 +22,10 @@ import {
   EuiSuperSelect,
   EuiToolTip,
 } from '../../../../src/components';
-import { htmlIdGenerator } from '../../../../src/services';
 
 export default () => {
-  const idPrefix = htmlIdGenerator();
-  const idPrefix1 = htmlIdGenerator();
+  const idPrefix = 'styleToggle';
+  const idPrefix1 = 'granularityToggle';
 
   const typeStyleToggleButtons = [
     {
